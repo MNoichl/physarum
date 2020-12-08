@@ -1,0 +1,7 @@
+setup.py
+physarum/__init__.py
+physarum.egg-info/PKG-INFO
+physarum.egg-info/SOURCES.txt
+physarum.egg-info/dependency_links.txt
+physarum.egg-info/not-zip-safe
+physarum.egg-info/top_level.txt
