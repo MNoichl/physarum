@@ -1,3 +1,4 @@
+
 # standards:
 import numpy as np
 import matplotlib.pyplot as plt
@@ -64,9 +65,12 @@ class physarum_population:
     ):
         """Initialize a physarum-population, with sensible defaults. The initialization should be set manually.
 
-        :param t: Time for which the simulation will run, integer, defaults to 4000.
-        :param timestep: Current timestep. starts at zero, gets updated in the simulation-loop.
-        :param height: height of the simulation-field the population lives in. Defaults to 1000.
+        :param t: Time for which the simulation will run.
+        :type t: int, defaults to 400.
+        :param timestep: Current timestep of the organisms life. Starts at zero, gets updated in the simulation-loop.
+        :type timestep: int, defaults to 0.
+        :param height: height of the simulation-field the population lives in.
+        :type height: int, defaults to 1000.
         :param width: width of the simulation-field the population lives in.  Defaults to 1000.
         :param horizon_walk: How far the cells walk every-step. Either float or list of floats that
                         will be distributed over the total time t, so that the value at every timestep is
@@ -419,7 +423,7 @@ def run_physarum_simulation(
             this_species.leave_trace(additive=additive_trace)
 
             if diffusion == "uniform":
-                this_species.diffuse_median(size=5)
+                this_species.diffuse_uniform(size=5)
             elif diffusion == "median":
                 this_species.diffuse_median(size=5)
             elif diffusion == "gaussian":
