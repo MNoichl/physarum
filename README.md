@@ -1,143 +1,444 @@
-# physarum package
-
-## Module contents
+# Example
 
 
-### physarum.get_circle_init(n=100000, center=(500, 500), radius=200, width=100)
-Returns tuple of x,y-coordinates sampled from a ring with the given center, radius and width.
+This code shows how to implement a simple physarum-simulation in python, using my `physarum`-package.  The package is heavily inspired by/derivative of work by [**Sage Jenson**](https://sagejenson.com/physarum) and [**Jason Rampe**](https://softologyblog.wordpress.com/2019/04/11/physarum-simulations/), and geared towards the production of digital art and playful experimentation. Have fun!
+
+## Installation
+
+You should be able to install the package with a simple:
+`pip install physarum`
 
 
-### physarum.get_filled_circle_init(n=100000, center=(500, 500), radius=200)
-Returns tuple of x,y-coordinates sampled from a circle with the given center and radius
+## Usage
+We start by importing the `physarum`-package.
 
 
-### physarum.get_gaussian_gradient(n=100000, center=(500, 500), sigma=20)
-Returns tuple of x,y-coordinates sampled from a 2-d gaussian around a given center with a given sigma
+```python
+%load_ext autoreload
+%autoreload 2
+import physarum
 
 
-### physarum.get_image_init_array(image, shape=(1000, 1000))
-
-### physarum.get_image_init_positions(image, shape=(1000, 1000), n=100000, flip=False)
-
-### physarum.get_perlin_init(shape=(1000, 1000), n=100000, cutoff=None, repetition=(1000, 1000), scale=100, octaves=20.0, persistence=0.1, lacunarity=2.0)
-Returns a tuple of x,y-coordinates sampled from Perlin noise.
-This can be used to initialize the starting positions of a physarum-
-population, as well as to generate a cloudy feeding-pattern that will
-have a natural feel to it. This function wraps the one from the noise-
-library from Casey Duncan, and is in parts borrowed from here (see also this for a good explanation of the noise-parameters):
-[https://medium.com/@yvanscher/playing-with-perlin-noise-generating-realistic-archipelagos-b59f004d8401](https://medium.com/@yvanscher/playing-with-perlin-noise-generating-realistic-archipelagos-b59f004d8401)
-The most relevant paramaters for our purposes are:
+```
 
 
-* **Parameters**
+```python
+# # standards:
+# import numpy as np
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+
+# # image utils:
+# from PIL import Image as IMG
+# from IPython.display import Image 
+# from skimage import data, color
+# from skimage.transform import rescale, resize, downscale_local_mean
+# import cv2 # for rescaling
+
+# # for the blurring:
+# from scipy.ndimage.filters import gaussian_filter, uniform_filter
+
+# # to monitor progress:
+# import tqdm
+
+# # to save movies:
+# import imageio
+# from datetime import datetime
+
+# # for colormaps
+# import palettable
+# import cmocean 
+# from colorsys import hls_to_rgb
+# from matplotlib import cm
+# from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+
+# # to speed up computation
+# import numba
+
+# # noise for the starting-positions:
+# import noise
+# from scipy import interpolate
+```
+
+## Setting up the colormaps
+Before we run our simulation, we have to set up the colormaps that we want to use for each of our physarum-populations. I like to use the little function below that allows me to produce colormaps from a list of `[hue,chroma,luminosity]`-triples, but in principle you can just use any matplotlib-colormap.
+
+The first colormap can be fully opaque, but the other two will be overlayed, so the will need some transparancy given by the ` alpha-distribution`-parameter in the form `[alpha with which to start, percentage at which to start, alpha with which to end, percentage at which to end]`. The current examples leave the bottom 10% of the colormap fully transparent, the top 20% at 90% transparency, with a regular increase in between.
+
+The function also automatically plots your colormap. With the basecolor-parameter, you can set the background of this plot.
+
+
+
+
+```python
+### # make_colormap([[0,90,50],[50,90,50],[100,90,50],[150,90,50],[200,90,50],[250,90,50],[300,90,50],[350,90,50]],alpha=False)
+species_a_color = physarum.make_colormap([[30,56,72],[225,42,17]],alpha_distribution=False)
+species_b_color = physarum.make_colormap([[27,94,58],[2,100,50]],alpha_distribution=[0.1,0.1,0.9,0.8], basecolor= species_a_color(0))
+
+
+```
+
+
+![png](output_4_0.png)
+
+
+
+![png](output_4_1.png)
+
+
+## Setting up basic parameters
+
+We set up the basic parameters for our simulation: width, height (in px) and the amount of itererations for which we want it to run. 
+
+
+```python
+width = 1500
+height = 1500
+t = 200 
+```
+
+## Setting up the initial positions
+Then we have to set up the initial positions of our particles. The package provides several functions for this, which all return a tuple of xy-coordinates. A list of these tuples will then be passed to the init-function when we construct a physarum-population.
+
+In this example, we set up a population that is initiated with a large circle made of 100000 particles in the center and some perlin-noise (300000 particles) around it. To see how that looks like, we then plot the resulting coordinates with matplotlib.
+
+
+
+```python
+init=[physarum.get_filled_circle_init(n=100000, center=(750,750),radius=300),
+        physarum.get_perlin_init(shape=(height,width), n=300000,scale=380)]
+
+
+# plot the init with matplotlib (not necessary, only for illustration):
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(figsize=(5,5))
+init_to_plot = np.vstack([i[0] for i in init]),np.vstack([i[1] for i in init])
+init_to_plot = np.hstack(init_to_plot)
+
+plt.scatter(init_to_plot[:,0],init_to_plot[:,1],s=0.1, c='black',alpha=0.2)
+```
+
+
+
+
+    <matplotlib.collections.PathCollection at 0x1affcde8988>
+
+
+
+
+![png](output_8_1.png)
+
+
+## Setting up the populations
+
+Now we set up our physarum-populations. There are several parameters to play with. First we need to inform each population about the environment it's living in by passing it the height, width and time-parameters. Then we need to set up the length of every step which each particle will do in every tick of the simulation (`horizon_walk`), and how far ahead the particle will look before doing that step (`horizon_sense`).
+
+
+
+```python
+species_a = physarum.physarum_population(height=height,width=width,t=t,
+                                horizon_walk=4,horizon_sense=9,
+                                theta_walk=15,theta_sense=10.,walk_range = [1.,2.],
+                                colormap=species_a_color,
+                                social_behaviour =0,trace_strength = 1,
+                                initialization=init)
+
+
+species_b = physarum.physarum_population(height=height,width=width,t=t,
+                                horizon_walk=4,horizon_sense=9,
+                                theta_walk=15,theta_sense=10.,walk_range = [0.9,1.2],
+                                colormap=species_b_color,
+                                social_behaviour = -16,trace_strength = 1,
+                                initialization=[physarum.get_perlin_init(shape=(height,width), n=300000,scale=380)])
+
+
+```
+
+## Running the simulation
+
+
+
+```python
+
+species_list = [species_a,species_b]
+images=[]
+physarum.run_physarum_simulation(populations = species_list, image_list=images,show_image_every=50)
+```
+
+
+    HBox(children=(HTML(value=''), FloatProgress(value=0.0, max=200.0), HTML(value='')))
+
+
+    Step No.: 0
+    
+
+
+![png](output_12_2.png)
+
+
+    Step No.: 50
+    
+
+
+![png](output_12_4.png)
+
+
+    Step No.: 100
+    
+
+
+![png](output_12_6.png)
+
+
+    Step No.: 150
+    
+
+
+![png](output_12_8.png)
+
 
     
-    * **shape** (*Tuple of integers with the form** (**width**, **height**)***) – The shape of the area in which the noise is to be generated. Defaults to (1000,1000)
-
-
-    * **n** – Number of particles to sample. When used as a feeeding trace,
-
-
-this translates to the relative strength of the pattern. defaults to 100000.
-
-
-* **Parameters**
-
     
-    * **cutoff** – value below which noise should be set to zero. Default is None. Will lead to probabilities ‘contains NaN-error, if to high’
-
-
-    * **scale** – (python-noise parameter) The scale of the noise – larger or smaller patterns, defaults to 100.
-
-
-    * **repetition** – (python-noise parameter) Tuple that denotes the size of the area in which the noise should repeat itself. Defaults to (1000,1000)
 
 
 
-### physarum.get_uniform_init(n=100000, shape=(1000, 1000))
-Returns tuple of x,y-coordinates uniformly distributed over an area of the given shape.
+
+    [<PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82372188>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AFE9DCD688>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82466108>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF85DB4548>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF822C1488>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87102608>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87102DC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8236AFC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8236AD48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDD48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDD88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDB08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDE48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDFC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDE88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDB88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDE08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860ED5C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDF08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860ED6C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDA48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDC48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860ED748>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860ED788>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860EDC08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82365888>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF92A9EC48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87102E88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860ED8C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860ED9C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860ED888>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87102708>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8605DA08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF857CFA08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8230D4C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8605DBC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8235C708>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860CB908>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860CBCC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860CB048>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860CB148>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860ED908>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860CB2C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860DC548>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860DCC48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860DC908>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860DC048>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8605DDC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860CB0C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF871148C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87114C88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87114E48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87114B48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87114148>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8235CFC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860DCCC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82365D88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87114948>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8235A048>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82356488>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82377488>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87103248>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87103148>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87103D48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87103DC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF871034C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87103F88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87103788>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82332AC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1B08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1448>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1948>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1D48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1308>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1108>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1F48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1148>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1548>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1D08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1E48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1EC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E15C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1348>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1BC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1048>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1908>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1E08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF92A8B488>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E13C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1608>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1A48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1788>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8235A908>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82330BC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82330248>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860CB548>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF92A8B448>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF823AC288>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E18C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870E1248>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8242E8C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF822FC788>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF823A9BC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF822EDA48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82432F48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82330148>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8242E908>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8232EC88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87114E08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D74C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D7D08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D7248>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D7108>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D7288>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D79C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82367648>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D7E08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8242EA08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF92A8BD08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D7B88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D7608>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8235AA48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D7D88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870D7148>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF85ECAD48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD188>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD2C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD548>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD908>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DDC88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD488>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DDC48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD808>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DDB88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD6C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD288>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD248>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD388>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD348>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD1C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD588>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DDEC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DDA48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD788>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD5C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD8C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD4C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF823305C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF85DACA08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD0C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DDA08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DD448>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DDBC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87114FC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DDD08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA848>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA988>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DAB08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA408>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA288>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA7C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA388>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA6C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA5C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DAE08>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DAE48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DAEC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DAF48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DAC88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA8C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA588>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA348>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA148>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA4C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA808>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA448>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DAFC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8242E788>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF85F6A788>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860E3208>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DABC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860E3588>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860E33C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860E3648>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82315F48>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF82356508>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF871235C8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87123448>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87123A88>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8235C048>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870DA308>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870FE508>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870FEDC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870FEBC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF870FE288>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF87123208>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8712B508>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8712BCC8>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF8712B888>,
+     <PIL.Image.Image image mode=RGBA size=1500x1500 at 0x1AF860E3B88>]
 
 
-### physarum.leave_feeding_trace(x, y, shape, trace_strength=1.0, sigma=7, mode='wrap', wrap_around=True, truncate=4)
-Turns x,y-coordinates returned by a list of calls to init-functions into a smooth feeding array.
+
+## Saving
 
 
-### physarum.make_colormap(colorlist, alpha_distribution=False, basecolor=None)
-returns a matplotlib colormap that goes through the values speciefied in hue, luminosity, saturation-format.
-:param alpha: How transparancey should be distributed over the colormap.
-List of the form [start alpha at this percentage, value of alpha at the start, end alpha at this percentage,
-value of alpha at the end.]. If True is passed, a standard value is used, if flase, the colormap has no alpha overlayed.
+```python
+help(physarum.save_film)
+```
 
-
-* **Parameters**
-
-    **basecolor** – Basis on which to plot the transparant colormaps. Usually the background-color.
-
-
-Not relevant for the actual colormap produced.
-
-
-### physarum.my_hls_to_rgb(color)
-Turn HLS-triplet into RGB
-
-
-### class physarum.physarum_population(t=400, timestep=0, height=1000, width=1000, horizon_walk=10.0, horizon_sense=40.0, theta_walk=20.0, theta_sense=20.0, walk_range=1.0, trace_strength=0.3, colormap=<matplotlib.colors.LinearSegmentedColormap object>, social_behaviour=-0.5, initialization=[[0], [0]], template='None', template_strength=1.0)
-Bases: `object`
-
-A class that contains the parameters that set up a physarum-population and keep track of its development.
-
-
-#### add_organisms(initialization=[[0], [0]])
-
-#### diffuse_gaussian(sigma=7, mode='wrap', truncate=4)
-Pheromones get distributed using gaussian smoothing.
-
-
-#### diffuse_median(size=3, mode='wrap')
-Pheromones get distributed using uniform smoothing. This can lead to nice artefacts,
-but also to diagonal drift at high values for size (?)
-
-
-#### diffuse_uniform(size=3, mode='wrap')
-Pheromones get distributed using uniform smoothing. This can lead to nice artefacts,
-but also to diagonal drift at high values for size (?)
-
-
-#### leave_trace(additive=False)
-Each particle leaves it’s pheromone trace on the trace array.
-If the trace is additive, it gets added, otherwise the trace array is set to the value of the trace.
-
-
-#### static numba_update_positions(x, y, angle, theta_sense, horizon_sense, theta_walk, horizon_walk, trace_array)
-Internal numba-function that returns the adapted physarum-positions, given initial coordinates and constants
-
-
-#### update_constant(this_constant)
-
-#### update_positions(other_populations)
-Intermediate function, to get everythin in order for numba
-
-
-### physarum.plot_init_trace(feeding_trace, cmap=<matplotlib.colors.ListedColormap object>, scale=0.3)
-Displays a given trace_array, to check what it would look like
-
-
-### physarum.run_physarum_simulation(populations, image_list, additive_trace=True, diffusion='uniform', mask=False, cmap_rescaling=['sqrt', 'normalize'], decay=0.9, show_image_every=20, img_rescale=0.2)
-
-### physarum.save_film(images, name=False, fps=20, format='mp4', loop=False)
-
-### physarum.save_grid(images, name=False, folder=False)
-
-### physarum.save_single_image_grid(images, name=False, folder=False, image_no=False, dimensions=(5, 5))
-
-### physarum.test_spline(value, t)
-Plots the spline that willl be extrapolated for a list of changing constants.
-
-
-* **Parameters**
-
+    Help on function save_film in module physarum:
     
-    * **value** – list of values
+    save_film(images, name=False, fps=20, format='mp4', loop=False)
+    
+    
 
 
-    * **t** – number of timesteps to take
+```python
+physarum.save_film(images,name="example_film.mp4")
+
+physarum.save_film(images,name="example_film.gif", format="gif")
+```
+
+![](example_film.gif)
+
+
+```python
+physarum.save_grid(images, folder='physarum_tiles/')
+
+```
+
+
+```python
+physarum.save_single_image_grid(images,image_no=70, folder='physarum_tiles/',dimensions=(4,2))
+```
+
+
+![png](output_18_0.png)
+
