@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>physarum package &#8212; physarum  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Physarum" href="examples.html" />
+    <link rel="prev" title="Physarum" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="physarum-package">
+<h1>physarum package<a class="headerlink" href="#physarum-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-physarum">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-physarum" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="physarum.physarum_population">
+<em class="property">class </em><code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">physarum_population</code><span class="sig-paren">(</span><em class="sig-param">t=400, timestep=0, height=1000, width=1000, horizon_walk=10.0, horizon_sense=40.0, theta_walk=20.0, theta_sense=20.0, walk_range=1.0, trace_strength=0.3, colormap=&lt;matplotlib.colors.LinearSegmentedColormap object&gt;, social_behaviour=-0.5, initialization=[[0], [0]], template='None', template_strength=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#physarum_population"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.physarum_population" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class that contains the parameters that set up a physarum-population and keep track of its development.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>int</em><em>, </em><em>defaults to 400.</em>) – Time for which the simulation will run.</p></li>
+<li><p><strong>timestep</strong> (<em>int</em><em>, </em><em>defaults to 0.</em>) – Current timestep of the organisms life. Starts at zero, gets updated in the simulation-loop.</p></li>
+<li><p><strong>height</strong> (<em>int</em><em>, </em><em>defaults to 1000.</em>) – height of the simulation-field the population lives in.</p></li>
+<li><p><strong>width</strong> – width of the simulation-field the population lives in.  Defaults to 1000.</p></li>
+<li><p><strong>horizon_walk</strong> – How far the cells walk every-step. Either float or list of floats that
+will be distributed over the total time t, so that the value at every timestep is
+approximated through a spline over the values given in the list.</p></li>
+<li><p><strong>horizon_sense</strong> – How far each cell looks out before itself, to check where to go. Either float or a list of floats that
+will be distributed over the total time t, so that the value at every timestep is
+approximated through a spline over the values given in the list.</p></li>
+<li><p><strong>theta_walk</strong> – Angle in degrees that the cell turns left or right on every step. Either float or list of floats that
+will be distributed over the total time t, so that the value at every timestep is
+approximated through a spline over the values given in the list.</p></li>
+<li><p><strong>theta_sense</strong> – Angle in degrees that the cell checks on the left or right to decide where to go. Either float or a list of floats that
+will be distributed over the total time t, so that the value at every timestep is
+approximated through a spline over the values given in the list.</p></li>
+<li><p><strong>walk_range</strong> – Range that will be multiplied with the current horizon_walk value, so that the values for all cells
+are randomly distributed over it. This allows for faster and slower cells in the same population. Float or tuple (e.g (0.9, 2.1))</p></li>
+<li><p><strong>trace_strength</strong> – Strength of the trace left by the population. This allows to weight different populations differently in their influence. Float, default .3</p></li>
+<li><p><strong>colormap</strong> – matplotlib-colormap. Defaults to Curl_15 from palletable.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="physarum.physarum_population.add_organisms">
+<code class="sig-name descname">add_organisms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">initialization</span><span class="o">=</span><span class="default_value">[[0], [0]]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#physarum_population.add_organisms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.physarum_population.add_organisms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Will allow for the addition of organisms during the loop. Not fully implemented yet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="physarum.physarum_population.update_constant">
+<code class="sig-name descname">update_constant</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">this_constant</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#physarum_population.update_constant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.physarum_population.update_constant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="physarum.physarum_population.leave_trace">
+<code class="sig-name descname">leave_trace</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">additive</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#physarum_population.leave_trace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.physarum_population.leave_trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Each particle leaves it’s pheromone trace on the trace array.
+If the trace is additive, it gets added, otherwise the trace array is set to the value of the trace.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="physarum.physarum_population.diffuse_gaussian">
+<code class="sig-name descname">diffuse_gaussian</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">7</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'wrap'</span></em>, <em class="sig-param"><span class="n">truncate</span><span class="o">=</span><span class="default_value">4</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#physarum_population.diffuse_gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.physarum_population.diffuse_gaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pheromones get distributed using gaussian smoothing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="physarum.physarum_population.diffuse_uniform">
+<code class="sig-name descname">diffuse_uniform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'wrap'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#physarum_population.diffuse_uniform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.physarum_population.diffuse_uniform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pheromones get distributed using uniform smoothing. This can lead to nice artefacts,
+but also to diagonal drift at high values for size (?)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="physarum.physarum_population.diffuse_median">
+<code class="sig-name descname">diffuse_median</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'wrap'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#physarum_population.diffuse_median"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.physarum_population.diffuse_median" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pheromones get distributed using uniform smoothing. This can lead to nice artefacts,
+but also to diagonal drift at high values for size (?)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="physarum.physarum_population.update_positions">
+<code class="sig-name descname">update_positions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other_populations</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#physarum_population.update_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.physarum_population.update_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Intermediate function, to get everythin in order for numba</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="physarum.physarum_population.numba_update_positions">
+<em class="property">static </em><code class="sig-name descname">numba_update_positions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">angle</span></em>, <em class="sig-param"><span class="n">theta_sense</span></em>, <em class="sig-param"><span class="n">horizon_sense</span></em>, <em class="sig-param"><span class="n">theta_walk</span></em>, <em class="sig-param"><span class="n">horizon_walk</span></em>, <em class="sig-param"><span class="n">trace_array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#physarum_population.numba_update_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.physarum_population.numba_update_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Internal numba-function that returns the adapted physarum-positions, given initial coordinates and constants</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.run_physarum_simulation">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">run_physarum_simulation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">populations</span></em>, <em class="sig-param"><span class="n">image_list</span></em>, <em class="sig-param"><span class="n">additive_trace</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">diffusion</span><span class="o">=</span><span class="default_value">'uniform'</span></em>, <em class="sig-param"><span class="n">mask</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">cmap_rescaling</span><span class="o">=</span><span class="default_value">['sqrt', 'normalize']</span></em>, <em class="sig-param"><span class="n">decay</span><span class="o">=</span><span class="default_value">0.9</span></em>, <em class="sig-param"><span class="n">show_image_every</span><span class="o">=</span><span class="default_value">20</span></em>, <em class="sig-param"><span class="n">img_rescale</span><span class="o">=</span><span class="default_value">0.2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#run_physarum_simulation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.run_physarum_simulation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="physarum.leave_feeding_trace">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">leave_feeding_trace</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">shape</span></em>, <em class="sig-param"><span class="n">trace_strength</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">7</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'wrap'</span></em>, <em class="sig-param"><span class="n">wrap_around</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">truncate</span><span class="o">=</span><span class="default_value">4</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#leave_feeding_trace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.leave_feeding_trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turns x,y-coordinates returned by a list of calls to init-functions into a smooth feeding array.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.get_perlin_init">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">get_perlin_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="o">=</span><span class="default_value">(1000, 1000)</span></em>, <em class="sig-param"><span class="n">n</span><span class="o">=</span><span class="default_value">100000</span></em>, <em class="sig-param"><span class="n">cutoff</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">repetition</span><span class="o">=</span><span class="default_value">(1000, 1000)</span></em>, <em class="sig-param"><span class="n">scale</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">octaves</span><span class="o">=</span><span class="default_value">20.0</span></em>, <em class="sig-param"><span class="n">persistence</span><span class="o">=</span><span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">lacunarity</span><span class="o">=</span><span class="default_value">2.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#get_perlin_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.get_perlin_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a tuple of x,y-coordinates sampled from Perlin noise.
+This can be used to initialize the starting positions of a physarum-
+population, as well as to generate a cloudy feeding-pattern that will
+have a natural feel to it. This function wraps the one from the noise-
+library from Casey Duncan, and is in parts borrowed from here (see also this for a good explanation of the noise-parameters):
+<a class="reference external" href="https://medium.com/&#64;yvanscher/playing-with-perlin-noise-generating-realistic-archipelagos-b59f004d8401">https://medium.com/&#64;yvanscher/playing-with-perlin-noise-generating-realistic-archipelagos-b59f004d8401</a>
+The most relevant paramaters for our purposes are:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape</strong> (<em>Tuple of integers with the form</em><em> (</em><em>width</em><em>, </em><em>height</em><em>)</em><em></em>) – The shape of the area in which the noise is to be generated. Defaults to (1000,1000)</p></li>
+<li><p><strong>n</strong> – Number of particles to sample. When used as a feeeding trace,</p></li>
+</ul>
+</dd>
+</dl>
+<p>this translates to the relative strength of the pattern. defaults to 100000.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cutoff</strong> – value below which noise should be set to zero. Default is None. Will lead to probabilities ‘contains NaN-error, if to high’</p></li>
+<li><p><strong>scale</strong> – (python-noise parameter) The scale of the noise – larger or smaller patterns, defaults to 100.</p></li>
+<li><p><strong>repetition</strong> – (python-noise parameter) Tuple that denotes the size of the area in which the noise should repeat itself. Defaults to (1000,1000)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.get_circle_init">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">get_circle_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span><span class="o">=</span><span class="default_value">100000</span></em>, <em class="sig-param"><span class="n">center</span><span class="o">=</span><span class="default_value">(500, 500)</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">width</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#get_circle_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.get_circle_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns tuple of x,y-coordinates sampled from a ring with the given center, radius and width.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.get_filled_circle_init">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">get_filled_circle_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span><span class="o">=</span><span class="default_value">100000</span></em>, <em class="sig-param"><span class="n">center</span><span class="o">=</span><span class="default_value">(500, 500)</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">200</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#get_filled_circle_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.get_filled_circle_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns tuple of x,y-coordinates sampled from a circle with the given center and radius</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.get_gaussian_gradient">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">get_gaussian_gradient</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span><span class="o">=</span><span class="default_value">100000</span></em>, <em class="sig-param"><span class="n">center</span><span class="o">=</span><span class="default_value">(500, 500)</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">20</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#get_gaussian_gradient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.get_gaussian_gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns tuple of x,y-coordinates sampled from a 2-d gaussian around a given center with a given sigma</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.get_uniform_init">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">get_uniform_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span><span class="o">=</span><span class="default_value">100000</span></em>, <em class="sig-param"><span class="n">shape</span><span class="o">=</span><span class="default_value">(1000, 1000)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#get_uniform_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.get_uniform_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns tuple of x,y-coordinates uniformly distributed over an area of the given shape.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.get_image_init_positions">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">get_image_init_positions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">shape</span><span class="o">=</span><span class="default_value">(1000, 1000)</span></em>, <em class="sig-param"><span class="n">n</span><span class="o">=</span><span class="default_value">100000</span></em>, <em class="sig-param"><span class="n">flip</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#get_image_init_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.get_image_init_positions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="physarum.get_image_init_array">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">get_image_init_array</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">shape</span><span class="o">=</span><span class="default_value">(1000, 1000)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#get_image_init_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.get_image_init_array" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="physarum.my_hls_to_rgb">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">my_hls_to_rgb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#my_hls_to_rgb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.my_hls_to_rgb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn HLS-triplet into RGB</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.make_colormap">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">make_colormap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">colorlist</span></em>, <em class="sig-param"><span class="n">alpha_distribution</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">basecolor</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#make_colormap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.make_colormap" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a matplotlib colormap that goes through the values speciefied in hue, luminosity, saturation-format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>alpha</strong> – How transparancey should be distributed over the colormap.</p>
+</dd>
+</dl>
+<p>List of the form [start alpha at this percentage, value of alpha at the start, end alpha at this percentage,
+value of alpha at the end.]. If True is passed, a standard value is used, if flase, the colormap has no alpha overlayed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>basecolor</strong> – Basis on which to plot the transparant colormaps. Usually the background-color. (Not relevant for the actual colormap produced.)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.plot_init_trace">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">plot_init_trace</code><span class="sig-paren">(</span><em class="sig-param">feeding_trace</em>, <em class="sig-param">cmap=&lt;matplotlib.colors.ListedColormap object&gt;</em>, <em class="sig-param">scale=0.3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#plot_init_trace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.plot_init_trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays a given trace_array, to check what it would look like</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.test_spline">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">test_spline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">t</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#test_spline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.test_spline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the spline that will be extrapolated for a list of changing constants.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – list of values</p></li>
+<li><p><strong>t</strong> – number of timesteps to take</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="physarum.save_film">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">save_film</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">images</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">fps</span><span class="o">=</span><span class="default_value">20</span></em>, <em class="sig-param"><span class="n">format</span><span class="o">=</span><span class="default_value">'mp4'</span></em>, <em class="sig-param"><span class="n">loop</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#save_film"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.save_film" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="physarum.save_grid">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">save_grid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">images</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">folder</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#save_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.save_grid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="physarum.save_single_image_grid">
+<code class="sig-prename descclassname">physarum.</code><code class="sig-name descname">save_single_image_grid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">images</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">folder</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">image_no</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">dimensions</span><span class="o">=</span><span class="default_value">(5, 5)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/physarum.html#save_single_image_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#physarum.save_single_image_grid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">physarum</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">physarum package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-physarum">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Physarum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Physarum</a></li>
+      <li>Next: <a href="examples.html" title="next chapter">Physarum</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Maximilian Noichl.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/physarum.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

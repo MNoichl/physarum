@@ -796,5 +796,3 @@ def save_single_image_grid(
     if folder != False:
         name = folder + name
     image_collection.save(name)
-
-    image_collection.save("physarum_tiles/" + date_time + ".png")
